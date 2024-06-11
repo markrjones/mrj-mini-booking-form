@@ -1,0 +1,64 @@
+.mrj-listing-widget {
+    margin: 0 auto; /* Center horizontally */
+	max-width: 800px; /* Set a specific maximum width */
+    padding: 0px 100px 0px 100px;
+}
+
+.time-slot {
+position: relative;
+float: left;
+padding: 12px 10px;
+text-align: center;
+cursor: pointer;
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+border-radius: 4px;
+color: #777;
+transition: 0.3s;
+overflow: hidden;
+font-size: 15px;
+}
+
+.booking-widget .panel-dropdown a {
+	border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 1px 6px 0px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    font-weight: 600;
+    height: auto;
+    padding: 10px 16px;
+    line-height: 30px;
+    margin: 0 0 15px 0;
+    position: relative;
+    background-color: #fff;
+    text-align: left;
+    color: #888;
+    display: block;
+    width: 100%;
+
+    transition: color 0.3s;
+}
+
+.booking-widget .panel-dropdown { width: 100%; }
+
+.booking-widget .panel-dropdown .panel-dropdown-content:before {
+	content: "";
+	height: 10px;
+	position: absolute;
+	width: 100%;
+	top: -3px;
+	background-color: #fff;
+	left: 0;
+	opacity: 0;
+	visibility: hidden;
+	transition: all 0.3s;
+	border-bottom: 1px solid #eee;
+}
+
+.booking-widget .panel-dropdown.active .panel-dropdown-content:before {
+	opacity: 1;
+	visibility: visible;
+}
