@@ -3,7 +3,7 @@
    Plugin Name: Mini booking form for listings
    Plugin URI: 
    description: Displays subset of listing info along with booking button.
-   Version: 0.2
+   Version: 0.3
    Author: Mark Jones
    Author URI: 
    */

@@ -1,11 +1,16 @@
 <?php
 // The template loader passes in the id inside an object called $data. 
-var_dump($data);
-
 $post = get_post($data->post_id);
 $post_info = $post; // Some of the code, which we want to use as-is and not change, uses this object so we duplicate the $post into it
 $post_id = $data->post_id; // Used by the widget code that we are using here
-$listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
+$listing_logo = get_post_meta($post->ID, '_listing_logo', true); 
+$post_meta = get_post_meta($post->ID);
+
+//$book_btn = get_post_meta($post_id, '_booking_link', true);
+//if (empty($book_btn)) {
+//	return;
+//}
+?>
 <div style="text-align: center;">
     <!-- Titlebar -->
     <div id="titlebar" style="display: inline-block;">
@@ -25,7 +30,7 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
             </span> <br>
         <?php endif; ?>
     </div>
-	<input type="hidden" id="listing_type" value="service">
+	<input type="hidden" id="listing_type" value="<?php echo $post_meta['_listing_type'][0]; ?>" />
 	<input type="hidden" id="listing_id" value="<?php echo $post->ID?>">
 </div>
 
@@ -80,8 +85,6 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 		        	6 	=> __('Sunday', 'listeo_core'),
 		        );
 
-            	$post_meta = get_post_meta($post->ID);
-	
 				error_log("here 1");
 
 				// get slots and check if not empty
@@ -103,7 +106,8 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 					$slots = false;
 				}
 
-    		// get opening hours
+
+				// get opening hours
     		if (isset($post_meta['_opening_hours'][0])) {
     			$opening_hours = json_decode($post_meta['_opening_hours'][0], true);
     		}
@@ -138,13 +142,9 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 				);
 		}
 
-		//var_dump($records);
-
 			// store start and end dates to display it in the widget
 			$wpk_start_dates = array();
 			$wpk_end_dates = array();
-
-			var_dump(count($records));
 
 			if (!empty($records)) {
 				foreach ($records as $record) {
@@ -240,8 +240,9 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 		}
 		?>
 
-		<div class="row with-forms margin-top-0" id="booking-widget-anchor">
+		<div class="row with-forms  margin-top-0" id="booking-widget-anchor">
 			<form ​ autocomplete="off" id="form-booking" data-post_id="<?php echo $post_info->ID; ?>" class="form-booking-<?php echo $post_meta['_listing_type'][0]; ?>" action="<?php echo esc_url(get_permalink(get_option('listeo_booking_confirmation_page'))); ?>" method="post">
+
 
 				<?php if ($post_meta['_listing_type'][0] != 'event') {
 					$minspan = get_post_meta($post_info->ID, '_min_days', true);
@@ -256,6 +257,7 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 					<div class="col-lg-12">
 						<input type="text" data-minspan="<?php echo ($minspan) ? $minspan : '0'; ?>" id="date-picker" readonly="readonly" class="date-picker-listing-<?php echo esc_attr($post_meta['_listing_type'][0]); ?>" autocomplete="off" placeholder="<?php esc_attr_e('Date', 'listeo_core'); ?>" value="" data-listing_type="<?php echo $post_meta['_listing_type'][0]; ?>" />
 					</div>
+
 								
 					<!-- Panel Dropdown -->
 					<?php if ($post_meta['_listing_type'][0] == 'service' &&   is_array($slots)) {
@@ -266,7 +268,7 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 						// 0   1   2   3         4      5      6
 						// 1   2   3   4         5      6      0
 						$day++;
-						if($day == 7 ){
+						if ($day == 7) {
 							$day = 0;
 						}
 						
@@ -275,7 +277,7 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 					}
 					?>
 						<div class="col-lg-12">
-							<div class="panel-dropdown time-slots-dropdown" data-slots-days=<?php echo implode(',',$slot_days_array); ?>>
+							<div class="panel-dropdown time-slots-dropdown" data-slots-days=<?php echo implode(',', $slot_days_array); ?>>
 								<a href="#" placeholder="<?php esc_html_e('Time Slots', 'listeo_core') ?>"><?php esc_html_e('Time Slots', 'listeo_core') ?></a>
 
 								<div class="panel-dropdown-content timeslot-panel padding-reset">
@@ -285,9 +287,9 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 										<input id="listing_id" type="hidden" name="listing_id" value="<?php echo $post_info->ID; ?>" />
 										<?php foreach ($slots as $day => $day_slots) {
 											if (empty($day_slots)) continue;
-										?>
+										
 
-											<?php foreach ($day_slots as $number => $slot) {
+											foreach ($day_slots as $number => $slot) {
 												$slot = explode('|', $slot); ?>
 												<!-- Time Slot -->
 												<div class="time-slot" day="<?php echo $day; ?>">
@@ -310,16 +312,17 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 							$time_value = '';
 					?>
 						<div class="col-lg-12 listeo-service-timepicker">
-							<input type="text" class="time-picker flatpickr-input active" placeholder="<?php esc_html_e('Time', 'listeo_core') ?>" id="_hour" name="_hour" readonly="readonly">
+							<input type="text" class="time-picker flatpickr-input active" value="<?php echo apply_filters('listeo_core_service_timepicker_value', $time_value); ?>" placeholder="<?php esc_html_e('Time', 'listeo_core') ?>" id="_hour" name="_hour" readonly="readonly">
 						</div>
 						<?php if (get_post_meta($post_id, '_end_hour', true)) : ?>
-							<div class="col-lg-12">
+							<div class="col-lg-12 listeo-service-timepicker">
 								<input type="text" class="time-picker time-picker-end-hour flatpickr-input active" placeholder="<?php esc_html_e('End Time', 'listeo_core') ?>" id="_hour_end" name="_hour_end" readonly="readonly">
 							</div>
 						<?php
 						endif;
 						$_opening_hours_status = get_post_meta($post_id, '_opening_hours_status', true);
-						$_opening_hours_status = '';
+						$opening_hours = get_post_meta($post_id, '_opening_hours', true);
+
 						?>
 						<script>
 							var availableDays = <?php if ($_opening_hours_status) {
@@ -380,7 +383,9 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 
 													<?php if (isset($service['bookable_quantity'])) : ?>
 														<div class="qtyButtons">
-															<input type="text" class="bookable-service-quantity" name="_service_qty[<?php echo sanitize_title($service['name']); ?>]" value="1">
+														<input type="text" data-min="1" <?php if (isset($service['bookable_quantity_max']) && !empty($service['bookable_quantity_max'])) {
+																								echo 'data-max="' . $service['bookable_quantity_max'] . '"';
+																							} ?> class="bookable-service-quantity" name="_service_qty[<?php echo sanitize_title($service['name']); ?>]" value="1">
 														</div>
 													<?php else : ?>
 														<input type="hidden" class="bookable-service-quantity" name="_service_qty[<?php echo sanitize_title($service['name']); ?>]" value="1">
@@ -402,7 +407,7 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 					endif;
 					$max_guests = get_post_meta($post_info->ID, "_max_guests", true);
 					$min_guests = get_post_meta($post_info->ID, "_min_guests", true);
-					if(empty($min_guests)){
+					if (empty($min_guests)) {
 						$min_guests = 1;
 					}
 					$count_per_guest = get_post_meta($post_info->ID, "_count_per_guest", true);
@@ -546,9 +551,8 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 		<input type="hidden" id="listing_type" value="<?php echo $post_meta['_listing_type'][0]; ?>" />
 		<input type="hidden" id="listing_id" value="<?php echo $post_info->ID; ?>" />
 		<input id="booking" type="hidden" name="value" value="booking_form" />
-		<?php if (is_user_logged_in()) :
-
-			if ($post_meta['_listing_type'][0] == 'event') {
+		<?php
+		if ($post_meta['_listing_type'][0] == 'event') {
 				$book_btn = esc_html__('Make a Reservation', 'listeo_core');
 			} else {
 				if (get_post_meta($post_info->ID, '_instant_booking', true)) {
@@ -557,6 +561,7 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 					$book_btn = esc_html__('Request Booking', 'listeo_core');
 				}
 			}
+			if (is_user_logged_in()) :
 
 		//	$post_id = $queried_object->ID;
 			$author_id = get_post_field('post_author', $post_id);
@@ -577,20 +582,30 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 
 
 			<?php else :
-			$popup_login = get_option('listeo_popup_login', 'ajax');
-			if ($popup_login == 'ajax') { ?>
 
-				<a href="#sign-in-dialog" class="button fullwidth margin-top-5 popup-with-zoom-anim book-now-notloggedin">
-					<div class="loadingspinner"></div><span class="book-now-text"><?php esc_html_e('Login to Book', 'listeo_core') ?></span>
+			$booking_without_login = get_option('listeo_booking_without_login', 'off');
+						
+			if ($booking_without_login == 'on') { ?>
+				<a href="#" class="button book-now fullwidth margin-top-5">
+					<div class="loadingspinner"></div><span class="book-now-text"><?php echo $book_btn; ?></span>
 				</a>
+				<?php } else {
+				$popup_login = get_option('listeo_popup_login', 'ajax');
+				if ($popup_login == 'ajax') { ?>
+			
+					<a href="#sign-in-dialog" class="button fullwidth margin-top-5 popup-with-zoom-anim book-now-notloggedin">
+						<div class="loadingspinner"></div><span class="book-now-text"><?php esc_html_e('Login to Book', 'listeo_core') ?></span>
+					</a>
+				
+				<?php } else {
+				
+					$login_page = get_option('listeo_profile_page'); ?>
+					<a href="<?php echo esc_url(get_permalink($login_page)); ?>" class="button fullwidth margin-top-5 book-now-notloggedin">
+						<div class="loadingspinner"></div><span class="book-now-text"><?php esc_html_e('Login To Book', 'listeo_core') ?></span>
+					</a>
+			<?php }
+			} ?>
 
-			<?php } else {
-
-				$login_page = get_option('listeo_profile_page'); ?>
-				<a href="<?php echo esc_url(get_permalink($login_page)); ?>" class="button fullwidth margin-top-5 book-now-notloggedin">
-					<div class="loadingspinner"></div><span class="book-now-text"><?php esc_html_e('Login To Book', 'listeo_core') ?></span>
-				</a>
-			<?php } ?>
 
 		<?php endif; ?>
 
@@ -618,7 +633,35 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 
 				$event_default_price = $reservation_fee + $normal_price;
 			}  ?>
-			<strong><?php esc_html_e('Total Cost', 'listeo_core'); ?></strong>
+						<?php
+			$mandatory_fees = get_post_meta($post_info->ID, "_mandatory_fees", true);
+			if (is_array($mandatory_fees) && !empty($mandatory_fees)) {
+				$currency_abbr = get_option('listeo_currency');
+				$currency_postion = get_option('listeo_currency_postion');
+				$currency_symbol = Listeo_Core_Listing::get_currency_symbol($currency_abbr);
+				echo "<ul id='booking-mandatory-fees'>";
+				foreach ($mandatory_fees as $key => $fee) { ?>
+					<li>
+						<p><?php echo $fee['title']; ?></p>
+						<strong><?php if ($currency_postion == 'before') {
+									echo $currency_symbol . ' ';
+								}
+								$decimals = get_option('listeo_number_decimals', 2);
+								if (is_numeric($fee['price'])) {
+									echo number_format_i18n($fee['price'], $decimals);
+								} else {
+									echo esc_html($fee['price']);
+								}
+
+								if ($currency_postion == 'after') {
+									echo ' ' . $currency_symbol;
+								} ?></strong>
+					</li>
+			<?php }
+				echo "</ul>";
+			};
+			?>
+    		<strong><?php esc_html_e('Total Cost', 'listeo_core'); ?></strong>
 			<span data-price="<?php if (isset($event_default_price)) {
 									echo esc_attr($event_default_price);
 								} ?>">
@@ -650,7 +693,7 @@ $listing_logo = get_post_meta($post->ID, '_listing_logo', true); ?>
 			</span>
 		</div>
 		<div class="booking-error-message" style="display: none;">
-			<?php if ($post_meta['_listing_type'][0] == 'subservice' && !$slots) {
+			<?php if ($post_meta['_listing_type'][0] == 'service' && !$slots) {
 				esc_html_e('Unfortunately we are closed at selected hours. Try different please.', 'listeo_core');
 			} else {
 				esc_html_e('Unfortunately this request can\'t be processed. Try different dates please.', 'listeo_core');
